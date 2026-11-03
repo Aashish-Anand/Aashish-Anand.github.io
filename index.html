@@ -1,0 +1,847 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Aashish Anand</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Aashish Anand, Software Engineer III at Expedia Group. Search, query understanding and AI systems.">
+<meta property="og:title" content="Aashish Anand · Search & AI Systems">
+<meta property="og:description" content="Software engineer building search, ranking and applied ML systems.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Crect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%232347E6%22/%3E%3Ctext x=%2232%22 y=%2242%22 font-size=%2226%22 font-family=%22Arial%22 font-weight=%22700%22 text-anchor=%22middle%22 fill=%22white%22%3EAA%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anybody:wdth,wght@50..150,100..900&family=Instrument+Sans:wght@400..700&family=Martian+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a search session. Query bar hero -> ranked results (work) -> session history (journey, horizontal) -> people -> contact. */
+:root{
+  --bg:#ECEEF2; --surface:#F7F8FA; --ink:#0D1321; --muted:#566074; --line:#CDD2DB;
+  --accent:#2347E6; --dest:#0A8573; --date:#B5650F; --guest:#B3365C; --type:#5A49C9;
+  --display:"Anybody", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body:"Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"Martian Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --step--1:clamp(12px,.72rem + .1vw,13px); --step-0:clamp(15px,.9rem + .2vw,17px);
+  --step-1:clamp(18px,1.05rem + .5vw,22px); --step-2:clamp(24px,1.2rem + 1.4vw,36px);
+  --step-3:clamp(36px,1.4rem + 3.6vw,72px); --step-4:clamp(56px,1.6rem + 9vw,176px);
+  --radius:14px; --max:1240px;
+  --dot:rgba(13,19,33,.085); --aurora-o:.9; --rest-glow:.55;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A0D14; --surface:#121723; --ink:#E8ECF3; --muted:#95A0B5; --line:#263044;
+  --accent:#8EA2FF; --dest:#3ED0B7; --date:#F2A448; --guest:#F37C9F; --type:#B3A6FF;
+  --dot:rgba(232,236,243,.05); --aurora-o:.4; --rest-glow:.28; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A0D14; --surface:#121723; --ink:#E8ECF3; --muted:#95A0B5; --line:#263044;
+  --accent:#8EA2FF; --dest:#3ED0B7; --date:#F2A448; --guest:#F37C9F; --type:#B3A6FF;
+  --dot:rgba(232,236,243,.05); --aurora-o:.4; --rest-glow:.28; color-scheme:dark}
+
+*{box-sizing:border-box}
+html{scroll-behavior:auto}
+body{background:var(--bg);background-image:radial-gradient(var(--dot) 1px,transparent 1.3px);background-size:24px 24px;color:var(--ink);font-family:var(--body);font-size:var(--step-0);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.wrap{max-width:var(--max);margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media (min-width:760px){.wrap{padding-left:max(40px,env(safe-area-inset-left,0px));padding-right:max(40px,env(safe-area-inset-right,0px))}}
+.mono{font-family:var(--mono);font-size:var(--step--1);letter-spacing:.04em}
+.eyebrow{font-family:var(--mono);font-size:var(--step--1);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;align-items:center}
+.eyebrow b{color:var(--accent);font-weight:500}
+h1,h2,h3{font-family:var(--display);font-weight:700;text-wrap:balance;margin:0;line-height:.95}
+h2{font-size:var(--step-3);font-variation-settings:"wdth" var(--w,100);letter-spacing:-.01em}
+h3{font-size:var(--step-1);font-weight:650;line-height:1.15;font-variation-settings:"wdth" 92}
+p{margin:0}
+
+/* Ambient colour field: three slow-drifting washes in the entity colours */
+.aurora{position:fixed;inset:0;z-index:-2;pointer-events:none;overflow:hidden;opacity:var(--aurora-o)}
+.aurora i{position:absolute;width:62vmax;height:62vmax;border-radius:50%;background:radial-gradient(closest-side,color-mix(in oklab,var(--c) 26%,transparent),transparent);animation:drift 26s ease-in-out infinite alternate;will-change:transform}
+.aurora i:nth-child(1){--c:var(--accent);left:-18vmax;top:-22vmax}
+.aurora i:nth-child(2){--c:var(--dest);right:-22vmax;top:18vh;animation-duration:32s;animation-delay:-8s}
+.aurora i:nth-child(3){--c:var(--guest);left:18vw;bottom:-30vmax;animation-duration:38s;animation-delay:-14s}
+@keyframes drift{0%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(6vmax,4vmax,0) scale(1.12)}100%{transform:translate3d(-4vmax,7vmax,0) scale(.94)}}
+
+/* Nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;backdrop-filter:saturate(1.4) blur(14px);-webkit-backdrop-filter:saturate(1.4) blur(14px);background:color-mix(in oklab,var(--bg) 78%,transparent);border-bottom:1px solid color-mix(in oklab,var(--line) 60%,transparent)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px}
+.mark{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:-.02em;text-decoration:none;font-variation-settings:"wdth" 120}
+.nav ul{display:flex;gap:clamp(12px,2.4vw,32px);list-style:none;margin:0;padding:0;align-items:center}
+.nav a.link{text-decoration:none;font-family:var(--mono);font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);transition:color .2s}
+.nav a.link:hover{color:var(--ink)}
+.theme-btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);width:36px;height:36px;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.theme-btn svg{width:16px;height:16px}
+@media (max-width:620px){.nav .hide-sm{display:none}}
+
+/* Hero */
+.hero{position:relative;overflow:hidden;isolation:isolate}
+#cloud{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.hero .wrap{padding-block:clamp(48px,8vw,104px) clamp(40px,6vw,72px);display:grid;column-gap:clamp(32px,5vw,72px);row-gap:clamp(28px,4vw,48px);grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}
+.hero-name{grid-column:1/-1;min-width:0}
+.hero-copy{min-width:0;align-self:center}
+@media (max-width:980px){.hero .wrap{grid-template-columns:minmax(0,1fr)}}
+.name{font-size:clamp(52px,12.5vw,188px);font-weight:800;letter-spacing:-.03em;line-height:.86;margin-top:18px}
+.name .line{display:block;white-space:nowrap;padding-bottom:.04em}
+.name .l{display:inline-block;font-variation-settings:"wdth" var(--w,100);will-change:transform}
+.name .line:nth-child(2){color:var(--accent)}
+.thesis{font-size:var(--step-2);font-family:var(--display);font-weight:500;font-variation-settings:"wdth" 88;line-height:1.12;max-width:22ch;text-wrap:balance}
+.thesis em{font-style:normal;color:var(--accent)}
+.sub{margin-top:18px;color:var(--muted);max-width:52ch}
+
+/* Query demo */
+.qd{background:color-mix(in oklab,var(--surface) 88%,transparent);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 30px 80px -40px color-mix(in oklab,var(--ink) 45%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);min-width:0}
+.qd-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;color:var(--muted)}
+.qd-head .dots{display:flex;gap:6px}.qd-head .dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
+.qd-input{display:flex;gap:10px;align-items:flex-start;border:1.5px solid var(--ink);border-radius:10px;padding:12px 14px;min-height:76px;font-size:16px;line-height:1.45;background:var(--bg)}
+.qd-input svg{flex:none;width:18px;height:18px;margin-top:3px;color:var(--muted)}
+.qd-text{min-width:0;overflow-wrap:anywhere}
+.qd-text mark{background:none;color:inherit;border-bottom:2.5px solid currentColor;padding-bottom:1px}
+.qd-text mark.m-dest{color:var(--dest)}.qd-text mark.m-date{color:var(--date)}.qd-text mark.m-guest{color:var(--guest)}.qd-text mark.m-type{color:var(--type)}
+.caret{display:inline-block;width:2px;height:1.1em;background:var(--accent);vertical-align:-3px;margin-left:1px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px;min-height:58px;align-content:flex-start}
+.chip{display:flex;flex-direction:column;gap:2px;padding:6px 10px;border-radius:8px;border:1px solid currentColor;background:color-mix(in oklab,currentColor 8%,transparent);transition:opacity .35s,transform .35s cubic-bezier(.2,.9,.3,1.3)}
+.chip small{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.chip span{font-size:14px;font-weight:600;color:var(--ink)}
+.chip.k-dest{color:var(--dest)}.chip.k-date{color:var(--date)}.chip.k-guest{color:var(--guest)}.chip.k-type{color:var(--type)}
+.chip.off{opacity:0;transform:translateY(6px) scale(.94)}
+.ranked{list-style:none;margin:8px 0 0;padding:0;counter-reset:r;display:grid;gap:4px}
+.ranked li{counter-increment:r;display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 10px;border-radius:8px;position:relative}
+.ranked li::before{content:counter(r);font-family:var(--mono);font-size:12px;color:var(--muted)}
+.ranked li:first-child{background:color-mix(in oklab,var(--accent) 10%,transparent)}
+.ranked li:first-child::before{color:var(--accent)}
+.ranked .nm{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ranked .tp{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 8px}
+.ranked .bar{position:absolute;left:38px;right:10px;bottom:3px;height:2px;border-radius:2px;background:var(--line);overflow:hidden}
+.ranked .bar i{display:block;height:100%;width:calc(var(--s,.5)*100%);background:var(--accent);transition:width .7s cubic-bezier(.6,0,.2,1)}
+.qd-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px;color:var(--muted)}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line);grid-column:1/-1}
+.stat{padding:22px 18px 26px 0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-content:start;min-width:0;overflow:hidden}
+.stat + .stat{padding-left:18px;border-left:1px solid var(--line)}
+.stat-in{container-type:inline-size;display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+.stat b{font-family:var(--display);font-size:clamp(28px,1rem + 1.6vw,48px);font-size:clamp(28px,24cqi,60px);font-weight:750;line-height:1;font-variation-settings:"wdth" 88;font-variant-numeric:tabular-nums;white-space:nowrap;background:linear-gradient(105deg,var(--ink) 40%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.06em}
+.stat span{color:var(--muted);font-size:var(--step--1);max-width:24ch;min-width:0}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:nth-child(3){padding-left:0;border-left:0}.stat:nth-child(n+3){border-top:1px solid var(--line)}}
+
+/* Marquee */
+.marquee{border-block:1px solid var(--line);overflow:hidden;padding-block:14px;background:var(--surface)}
+.marquee-track{display:flex;width:max-content;animation:marq 48s linear infinite}
+.marquee-track span{font-family:var(--display);font-size:var(--step-1);font-weight:600;font-variation-settings:"wdth" 75;padding-inline:22px;white-space:nowrap;display:flex;align-items:center;gap:22px}
+.marquee-track span::after{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent);display:block}
+@keyframes marq{to{transform:translateX(-50%)}}
+
+/* Sections */
+section.block{padding-block:clamp(72px,11vw,150px)}
+.sec-head{display:grid;gap:18px;margin-bottom:clamp(36px,6vw,64px);max-width:900px}
+.sec-head p{color:var(--muted);max-width:60ch}
+
+/* Work */
+.work{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px}
+.card{container-type:inline-size;grid-column:span 6;position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:clamp(20px,2.4vw,30px);display:grid;gap:16px;align-content:start;overflow:hidden;transform-style:preserve-3d;will-change:transform;min-width:0}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(460px circle at var(--mx,88%) var(--my,0%),color-mix(in oklab,var(--accent) 14%,transparent),transparent 62%);opacity:var(--rest-glow);transition:opacity .3s;pointer-events:none}
+.card:nth-child(3n+2)::before{background:radial-gradient(460px circle at var(--mx,88%) var(--my,0%),color-mix(in oklab,var(--dest) 14%,transparent),transparent 62%)}
+.card:nth-child(3n)::before{background:radial-gradient(460px circle at var(--mx,88%) var(--my,0%),color-mix(in oklab,var(--guest) 12%,transparent),transparent 62%)}
+.card:hover::before{opacity:1}
+.card.wide{grid-column:span 7}.card.narrow{grid-column:span 5}.card.third{grid-column:span 4}.card.full{grid-column:span 12}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:1px solid var(--line)}
+.steps div{display:grid;gap:6px;align-content:start;padding:18px 18px 4px 0;min-width:0}
+.steps div + div{padding-left:18px;border-left:1px solid var(--line)}
+.steps .mono{color:var(--accent)}
+.steps b{font-family:var(--display);font-size:var(--step-1);font-weight:700;font-variation-settings:"wdth" 96}
+@media (max-width:760px){.steps{grid-template-columns:minmax(0,1fr)}.steps div + div{padding-left:0;border-left:0;border-top:1px solid var(--line)}}
+@media (max-width:980px){.card,.card.wide,.card.narrow,.card.third,.card.full{grid-column:span 12}}
+.card-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 12px}
+.rank{font-family:var(--mono);font-size:12px;color:var(--accent)}
+.org{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 10px;white-space:nowrap}
+.metric{display:grid;gap:6px;min-width:0}
+.metric b{font-family:var(--display);font-size:clamp(32px,1rem + 2.4vw,60px);font-size:clamp(32px,12cqi,72px);font-weight:780;line-height:.98;letter-spacing:-.02em;font-variation-settings:"wdth" 96;font-variant-numeric:tabular-nums;text-wrap:balance;background:linear-gradient(105deg,var(--ink) 38%,var(--accent));-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:.06em}
+.metric span{font-family:var(--mono);font-size:var(--step--1);color:var(--muted);letter-spacing:.04em}
+.card p{color:var(--muted);max-width:58ch}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tags span{font-size:12px;padding:3px 9px;border-radius:6px;background:var(--bg);border:1px solid var(--line)}
+.also{grid-column:span 12;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+.also div{padding:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:6px;align-content:start;min-width:0;container-type:inline-size}
+.also div + div{border-left:1px solid var(--line)}
+.also b{font-family:var(--display);font-size:var(--step-2);font-size:clamp(22px,16cqi,38px);font-weight:750;font-variation-settings:"wdth" 92;line-height:1;white-space:nowrap}
+.also span{color:var(--muted);font-size:14px}
+@media (max-width:860px){.also{grid-template-columns:repeat(2,minmax(0,1fr))}.also div:nth-child(3){border-left:0}.also div:nth-child(n+3){border-top:1px solid var(--line)}}
+
+/* Journey */
+.journey{background:var(--ink);color:var(--bg);position:relative;overflow:hidden}
+.journey .eyebrow{color:color-mix(in oklab,var(--bg) 65%,var(--ink))}
+.journey .eyebrow b{color:color-mix(in oklab,var(--accent) 70%,var(--bg))}
+.journey .sec-head p{color:color-mix(in oklab,var(--bg) 72%,var(--ink))}
+.journey-inner{padding-block:clamp(72px,10vw,130px) clamp(48px,6vw,80px)}
+.j-viewport{overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.j-viewport::-webkit-scrollbar{display:none}
+.journey.is-pinned .j-viewport{overflow:visible}
+.j-track{display:flex;gap:18px;width:max-content;padding-bottom:8px}
+@media (min-width:760px){.j-viewport{padding-left:max(40px,calc((100vw - var(--max))/2 + 40px));padding-right:40px}}
+.panel{width:min(400px,82vw);scroll-snap-align:start;border:1px solid color-mix(in oklab,var(--bg) 18%,var(--ink));border-radius:var(--radius);padding:26px;display:grid;gap:14px;align-content:start;background:color-mix(in oklab,var(--bg) 4%,var(--ink));min-width:0}
+.panel .yr{font-family:var(--display);font-size:clamp(64px,1rem + 6vw,112px);font-weight:800;line-height:.85;letter-spacing:-.03em;color:color-mix(in oklab,var(--bg) 34%,var(--ink));font-variation-settings:"wdth" 70}
+.panel.now .yr{color:var(--accent);-webkit-text-stroke:0}
+.panel .where{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:color-mix(in oklab,var(--accent) 60%,var(--bg))}
+.panel h3{color:var(--bg)}
+.panel ul{margin:0;padding:0;list-style:none;display:grid;gap:10px}
+.panel li{color:color-mix(in oklab,var(--bg) 74%,var(--ink));font-size:15px;line-height:1.5;padding-left:16px;position:relative}
+.panel li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:50%;background:color-mix(in oklab,var(--accent) 70%,var(--bg))}
+.j-progress{height:2px;background:color-mix(in oklab,var(--bg) 16%,var(--ink));margin-top:28px;border-radius:2px;overflow:hidden}
+.j-progress i{display:block;height:100%;width:100%;background:var(--accent);transform-origin:0 50%;transform:scaleX(.12)}
+.j-hint{margin-top:12px;color:color-mix(in oklab,var(--bg) 60%,var(--ink))}
+
+/* Craft */
+.craft{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(28px,5vw,72px)}
+@media (max-width:900px){.craft{grid-template-columns:minmax(0,1fr)}}
+.principles{display:grid;gap:0;border-top:1px solid var(--line)}
+.principle{display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px;padding-block:22px;border-bottom:1px solid var(--line)}
+.principle .mono{color:var(--accent);padding-top:4px}
+.principle h3{margin-bottom:6px}
+.principle p{color:var(--muted)}
+.skills{display:grid;gap:22px;align-content:start}
+.skill-group{display:grid;gap:10px}
+.skill-group .mono{color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.skill-group div{display:flex;flex-wrap:wrap;gap:8px}
+.skill-group span{padding:6px 12px;border:1px solid var(--line);border-radius:999px;font-size:14px;background:var(--surface);transition:border-color .2s,transform .2s}
+.skill-group span:hover{border-color:var(--accent);transform:translateY(-2px)}
+
+/* Side projects */
+.projects{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:1080px){.projects{grid-template-columns:minmax(0,1fr)}}
+.proj{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:grid;grid-template-rows:auto 1fr;min-width:0;transition:transform .3s,border-color .3s}
+.proj:hover{transform:translateY(-4px);border-color:color-mix(in oklab,var(--accent) 45%,var(--line))}
+.proj-body{padding:22px 24px 24px;display:grid;gap:14px;align-content:start}
+.proj-body p{color:var(--muted)}
+.proj-links{display:flex;flex-wrap:wrap;gap:16px;margin-top:2px}
+.proj-links a{font-family:var(--mono);font-size:var(--step--1);letter-spacing:.04em;color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in oklab,var(--accent) 40%,transparent);padding-bottom:2px}
+.proj-links a:hover{border-bottom-color:var(--accent)}
+.prev{position:relative;aspect-ratio:16/7;max-width:100%;background:var(--bg);border-bottom:1px solid var(--line);display:grid;place-items:center;overflow:hidden;
+  background-image:linear-gradient(var(--dot) 1px,transparent 1px),linear-gradient(90deg,var(--dot) 1px,transparent 1px);background-size:20px 20px}
+.pv-label{position:absolute;left:14px;bottom:10px;color:var(--muted);font-size:11px}
+.bars{display:flex;align-items:flex-end;gap:6px;height:62%;width:min(78%,360px)}
+.bars span{flex:1;border-radius:3px 3px 0 0;background:color-mix(in oklab,var(--accent) 55%,var(--surface));transition:height .35s cubic-bezier(.6,0,.2,1),background-color .2s}
+.bars span.cmp{background:var(--date)}.bars span.done{background:var(--dest)}
+.cdc{display:flex;align-items:center;gap:10px;width:min(86%,400px)}
+.cdc .node{flex:none;display:grid;gap:2px;padding:10px 14px;border:1.5px solid var(--ink);border-radius:10px;background:var(--surface);font-weight:600;font-size:14px}
+.cdc .node small{font-family:var(--mono);font-size:10px;color:var(--muted);font-weight:400;letter-spacing:.04em}
+.cdc .pipe{flex:1;height:2px;background:var(--line);position:relative;overflow:hidden;border-radius:2px}
+.cdc .pipe i{position:absolute;top:0;left:-30%;width:30%;height:100%;background:var(--accent);animation:flow 1.4s linear infinite}
+@keyframes flow{to{left:100%}}
+.cdc-meta{position:absolute;left:14px;right:14px;bottom:10px;display:flex;justify-content:space-between;color:var(--muted);font-size:11px}
+.cdc-meta b{color:var(--ink);font-weight:500}
+.k8s{display:flex;gap:12px;width:min(86%,400px)}
+.kn{flex:1;border:1.5px solid var(--ink);border-radius:10px;padding:8px 10px 10px;background:var(--surface);display:grid;gap:8px;transition:opacity .4s,border-color .4s}
+.kn small{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.kn div{display:flex;flex-wrap:wrap;gap:6px;min-height:14px}
+.kn i{width:14px;height:14px;border-radius:4px;background:var(--dest);display:block;animation:pod 2.4s ease-in-out infinite}
+.kn i:nth-child(2){animation-delay:.4s}.kn i:nth-child(3){animation-delay:.8s}.kn i:nth-child(4){animation-delay:1.2s}.kn i:nth-child(5){animation-delay:1.6s}
+@keyframes pod{50%{opacity:.55}}
+.kn.down{opacity:.4;border-color:var(--guest);border-style:dashed}
+.cb-states{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.cb-states span{font-family:var(--mono);font-size:12px;letter-spacing:.06em;padding:8px 12px;border-radius:999px;border:1.5px solid var(--line);color:var(--muted);transition:all .35s}
+.cb-states span.on[data-s="closed"]{border-color:var(--dest);color:var(--dest);background:color-mix(in oklab,var(--dest) 12%,transparent)}
+.cb-states span.on[data-s="open"]{border-color:var(--guest);color:var(--guest);background:color-mix(in oklab,var(--guest) 12%,transparent)}
+.cb-states span.on[data-s="half"]{border-color:var(--date);color:var(--date);background:color-mix(in oklab,var(--date) 12%,transparent)}
+.prev-cb{grid-template-rows:auto auto;align-content:center;gap:14px}
+.cb-log{color:var(--muted);font-size:13px;letter-spacing:.12em}
+
+/* People */
+.people{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:900px){.people{grid-template-columns:minmax(0,1fr)}}
+.person-card{border-top:2px solid var(--ink);padding-top:18px;display:grid;gap:10px;align-content:start}
+.person-card .mono{color:var(--accent)}
+.person-card p{color:var(--muted)}
+.quotes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(24px,4vw,56px);margin-top:clamp(48px,7vw,88px);padding-top:clamp(28px,4vw,40px);border-top:1px solid var(--line)}
+@media (max-width:760px){.quotes{grid-template-columns:minmax(0,1fr)}}
+.quote{margin:0;font-family:var(--display);font-size:var(--step-2);font-weight:500;line-height:1.15;font-variation-settings:"wdth" 86;max-width:30ch;text-wrap:balance}
+.quote small{display:block;margin-top:14px;font-family:var(--mono);font-size:var(--step--1);color:var(--muted);letter-spacing:.04em}
+
+/* Education */
+.edu{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:760px){.edu{grid-template-columns:minmax(0,1fr)}}
+.edu-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px;display:grid;gap:8px;align-content:start}
+.edu-card .mono{color:var(--muted)}
+.edu-card p{color:var(--muted)}
+
+/* Contact */
+.contact{border-top:1px solid var(--line)}
+.contact .wrap{padding-block:clamp(72px,10vw,140px) 40px;display:grid;gap:28px}
+.big{font-family:var(--display);font-size:clamp(44px,1.4rem + 6.4vw,128px);font-weight:800;line-height:.9;letter-spacing:-.03em;font-variation-settings:"wdth" var(--w,100);max-width:14ch}
+.big em{font-style:normal;color:var(--accent)}
+.email-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.email{font-family:var(--mono);font-size:var(--step-1);user-select:all;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface);overflow-wrap:anywhere}
+.btn{appearance:none;cursor:pointer;font:inherit;font-weight:600;border:0;border-radius:10px;padding:13px 18px;background:var(--ink);color:var(--bg);transition:transform .2s}
+.btn:hover{transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink);text-decoration:none;display:inline-flex;align-items:center}
+.hero-links{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.hero-links a{font-family:var(--mono);font-size:var(--step--1);letter-spacing:.06em;text-transform:uppercase;text-decoration:none;padding:9px 14px;border:1px solid var(--line);border-radius:999px;background:var(--surface);transition:border-color .2s,transform .2s}
+.hero-links a:hover{border-color:var(--accent);transform:translateY(-2px)}
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;color:var(--muted);padding-top:28px;border-top:1px solid var(--line)}
+
+@media (prefers-reduced-motion: reduce){.marquee-track{animation:none}.aurora i{animation:none}.cdc .pipe i,.kn i{animation:none}.caret{animation:none}*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="nav">
+  <div class="wrap">
+    <a class="mark" href="#top" aria-label="Back to top">AA</a>
+    <ul>
+      <li class="hide-sm"><a class="link" href="#work">Work</a></li>
+      <li class="hide-sm"><a class="link" href="#journey">Journey</a></li>
+      <li class="hide-sm"><a class="link" href="#projects">Projects</a></li>
+      <li class="hide-sm"><a class="link" href="#people">People</a></li>
+      <li><a class="link" href="#contact">Contact</a></li>
+      <li><button class="theme-btn" id="themeBtn" type="button" aria-label="Switch light or dark theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M2 12h2.5M19.5 12H22M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></button></li>
+    </ul>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero" aria-label="Introduction">
+  <canvas id="cloud" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div class="hero-name">
+      <div class="eyebrow"><b>●</b> Software Engineer III · Expedia Group · Gurgaon</div>
+      <h1 class="name" aria-label="Aashish Anand"><span class="line" aria-hidden="true">Aashish</span><span class="line" aria-hidden="true">Anand</span></h1>
+    </div>
+    <div class="hero-copy">
+      <p class="thesis">I build search that understands <em>what travellers mean</em>, from the first keystroke to the booking.</p>
+      <p class="sub">Six years at Expedia Group across typeahead, query understanding, AI search and the platforms that measure them. Before that, microservices at Amdocs. Software Engineering at Delhi Technological University.</p>
+      <div class="hero-links"><a href="https://www.linkedin.com/in/aashish-anand-62a072109/" target="_blank" rel="noopener">LinkedIn ↗</a><a href="https://github.com/Aashish-Anand" target="_blank" rel="noopener">GitHub ↗</a><a href="#contact">Get in touch</a></div>
+    </div>
+
+    <div class="qd" aria-label="Demo: a travel query parsed into intent and ranked suggestions">
+      <div class="qd-head"><div class="dots"><i></i><i></i><i></i></div><span class="mono">intent parser · live demo</span></div>
+      <div class="qd-input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><div class="qd-text" id="qdText"><mark class="m-type">cabin</mark> near <mark class="m-dest">lake tahoe</mark> for <mark class="m-guest">4 adults and a dog</mark>, <mark class="m-date">last weekend of august</mark><span class="caret"></span></div></div>
+      <div class="chips" id="qdChips">
+        <div class="chip k-dest" data-k="dest"><small>Destination</small><span>Lake Tahoe, CA</span></div>
+        <div class="chip k-date" data-k="date"><small>Dates</small><span>Aug 27 → 29, 2027</span></div>
+        <div class="chip k-guest" data-k="guest"><small>Guests</small><span>4 adults · 1 pet</span></div>
+        <div class="chip k-type" data-k="type"><small>Stay type</small><span>Cabin</span></div>
+      </div>
+      <ol class="ranked" id="qdRanked">
+        <li data-id="a"><span class="nm">Lake Tahoe, California</span><span class="tp">REGION</span><span class="bar"><i style="--s:.94"></i></span></li>
+        <li data-id="b"><span class="nm">South Lake Tahoe, CA</span><span class="tp">CITY</span><span class="bar"><i style="--s:.81"></i></span></li>
+        <li data-id="c"><span class="nm">Tahoe City, CA</span><span class="tp">CITY</span><span class="bar"><i style="--s:.66"></i></span></li>
+        <li data-id="d"><span class="nm">TVL · Lake Tahoe Airport</span><span class="tp">AIRPORT</span><span class="bar"><i style="--s:.38"></i></span></li>
+      </ol>
+      <div class="qd-foot mono"><span id="qdStatus">intent read in 14 ms · no LLM call</span><span>illustrative</span></div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><div class="stat-in"><b class="count" data-to="6">6</b><span>years building search at Expedia Group</span></div></div>
+      <div class="stat"><div class="stat-in"><b class="count" data-to="14">14</b><span>live ranking experiments read out daily by a platform I built</span></div></div>
+      <div class="stat"><div class="stat-in"><b class="count" data-to="300" data-prefix="$" data-suffix="K">$300K</b><span>a year saved in cloud cost</span></div></div>
+      <div class="stat"><div class="stat-in"><b class="count" data-to="3">3</b><span>peer recognition awards in 2025 and 2026</span></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee" aria-hidden="true"><div class="marquee-track">
+  <span>Semantic search</span><span>Query understanding</span><span>Agentic RAG</span><span>Learning to rank</span><span>Vector search</span><span>Low-latency systems</span><span>Experimentation</span><span>Typeahead</span><span>Kotlin · Java · Python</span><span>ONNX inference</span>
+  <span>Semantic search</span><span>Query understanding</span><span>Agentic RAG</span><span>Learning to rank</span><span>Vector search</span><span>Low-latency systems</span><span>Experimentation</span><span>Typeahead</span><span>Kotlin · Java · Python</span><span>ONNX inference</span>
+</div></div>
+
+<section class="block" id="work" aria-labelledby="work-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><b>01</b> Selected work</div>
+      <h2 id="work-h" class="scrub-w">Results that moved the needle</h2>
+      <p>Search is judged one keystroke at a time. These are systems I designed, built or led, and what each one changed.</p>
+    </div>
+    <div class="work">
+      <article class="card wide">
+        <div class="card-top"><span class="rank">#1</span><span class="org">Lodging · web and apps</span></div>
+        <h3>Search filters and the experiments behind them</h3>
+        <div class="metric"><b>Web + apps</b><span>filters shipped with their own A/B framework</span></div>
+        <p>I built lodging search filters (popular, deals, loyalty and a price slider) for web and native apps, together with the framework that A/B tested every change before it rolled out.</p>
+        <div class="tags"><span>Web + native</span><span>A/B testing</span><span>Search UX</span></div>
+      </article>
+      <article class="card narrow">
+        <div class="card-top"><span class="rank">#2</span><span class="org">Expedia</span></div>
+        <h3>Traveler Q&amp;A</h3>
+        <div class="metric"><b>57→83%</b><span>questions answered after the v3 launch</span></div>
+        <p>Travellers ask a question about a property and get a short, grounded answer, built with RAG over descriptions, amenities, FAQs and reviews. I built the multi-property Q&amp;A API and the OpenSearch retrieval prototype.</p>
+        <div class="tags"><span>Agentic RAG</span><span>LLM</span><span>OpenSearch</span></div>
+      </article>
+      <article class="card narrow">
+        <div class="card-top"><span class="rank">#3</span><span class="org">Hotels.com · AI agent</span></div>
+        <h3>Hotels.com AI travel agent</h3>
+        <div class="metric"><b>22→8%</b><span>fallback rate on the agent's search</span></div>
+        <p>Launched in May 2025 for EXPLORE week. I built the query understanding behind the agent's search: budget search, fuzzy matching (67% → 83%) and contextual ranking. Pushing it through late nights earned a peer recognition award.</p>
+        <div class="tags"><span>AI agents</span><span>Function calling</span><span>Query understanding</span></div>
+      </article>
+      <article class="card wide">
+        <div class="card-top"><span class="rank">#4</span><span class="org">Vrbo</span></div>
+        <h3>Natural Language Search</h3>
+        <div class="metric"><b>100%</b><span>launched to all opt-in travellers, May 2026</span></div>
+        <p>Travellers describe the trip in their own words. I built the intent layer that reads destination, dates and guests in milliseconds: an in-memory DistilBERT model and a rule engine, with no LLM call on the hot path. Quality stayed above target on every check.</p>
+        <div class="tags"><span>NLU</span><span>DistilBERT · ONNX</span><span>Kotlin</span><span>Duckling</span></div>
+      </article>
+      <article class="card third">
+        <div class="card-top"><span class="rank">#5</span><span class="org">All brands</span></div>
+        <h3>Recent search history, rebuilt</h3>
+        <div class="metric"><b>100→35ms</b><span>P95 when the search box opens</span></div>
+        <p>I built a new history service, which made calls almost 4× faster, then moved it to a new data source.</p>
+        <div class="tags"><span>Latency</span><span>DynamoDB</span><span>A/B tested</span></div>
+      </article>
+      <article class="card third">
+        <div class="card-top"><span class="rank">#6</span><span class="org">Ranking</span></div>
+        <h3>Automated ranking test readouts</h3>
+        <div class="metric"><b>14</b><span>live ranking tests read out daily · built solo</span></div>
+        <p>Register an interleaving test once and get a trusted verdict every day, no notebooks. Widely used across teams and demoed across the ranking org, it now powers ranking degradation alerts for Lodging and Packages.</p>
+        <div class="tags"><span>Experimentation</span><span>Flyte</span><span>React</span></div>
+      </article>
+      <article class="card third">
+        <div class="card-top"><span class="rank">#7</span><span class="org">Platform</span></div>
+        <h3>Search platform efficiency</h3>
+        <div class="metric"><b>$300K</b><span>saved every year</span></div>
+        <p>Moved the search intent stack from EC2 to Kubernetes, retired unused ML services, and moved ingestion to ScyllaDB (30 → 4 minutes per million documents).</p>
+        <div class="tags"><span>Kubernetes</span><span>ScyllaDB</span><span>Cost</span></div>
+      </article>
+      <article class="card wide">
+        <div class="card-top"><span class="rank">Now</span><span class="org">Typeahead · tech lead</span></div>
+        <h3>The next typeahead ranking model</h3>
+        <div class="metric"><b>Shadow test</b><span>targeted for December 2026</span></div>
+        <p>I lead the work to replace a popularity-based ranker with an ML model that reads intent, starting with lodging, so a city stops losing to its airport. The metrics, design, event data and a multilingual embedding pipeline are already live.</p>
+        <div class="tags"><span>Tech lead</span><span>Embeddings</span><span>Feature store</span><span>A/B testing</span></div>
+      </article>
+      <article class="card narrow">
+        <div class="card-top"><span class="rank">Ops</span><span class="org">Query understanding</span></div>
+        <h3>Reliability as operations lead</h3>
+        <div class="metric"><b>99.95%</b><span>availability · no P0–P2 incidents in 2025</span></div>
+        <p>As operations lead for query understanding I kept three production services healthy, moved the intent service up to Tier 1, and traced latency spikes to their source, including upstream LLM providers.</p>
+        <div class="tags"><span>Operations</span><span>On call</span><span>Observability</span></div>
+      </article>
+      <article class="card full">
+        <div class="card-top"><span class="rank">Story</span><span class="org">Hackathons → product</span></div>
+        <h3>From hackathon idea to shipped product</h3>
+        <div class="steps">
+          <div><span class="mono">Sep 2024</span><b>AI Bandits</b><p>A natural language search engine built at the EG Global Hackathon. It won its local round.</p></div>
+          <div><span class="mono">Sep 2025</span><b>BOSS Typeahead</b><p>Prefix-aware DistilBERT entity tagging in about 25–30 ms. Called "a really promising demo".</p></div>
+          <div><span class="mono">May 2026</span><b>Natural Language Search</b><p>The same idea, live for Vrbo travellers, with DistilBERT running inside the intent service.</p></div>
+        </div>
+      </article>
+      <div class="also">
+        <div><b>~4×</b><span>Faster recent-search history calls after I rebuilt the service</span></div>
+        <div><b>Multi-region</b><span>History service designed and launched from scratch</span></div>
+        <div><b>Privacy</b><span>Delete recent searches on Expedia, Hotels.com and Vrbo, which won its A/B test</span></div>
+        <div><b>97%→0</b><span>Legacy endpoint traffic, after moving every partner to the new typeahead</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="journey" id="journey" aria-labelledby="journey-h">
+  <div class="journey-inner">
+    <div class="wrap"><div class="sec-head">
+      <div class="eyebrow"><b>02</b> Session history · 2014 → 2026</div>
+      <h2 id="journey-h" class="scrub-w">Twelve years, one direction</h2>
+      <p>From a software engineering degree to leading search work used by millions of travellers each day. Scroll through it year by year.</p>
+    </div></div>
+    <div class="j-viewport" id="jViewport"><div class="j-track" id="jTrack">
+      <article class="panel"><div class="yr">2014</div><div class="where">Delhi Technological University</div><h3>B.Tech, Software Engineering</h3><ul><li>Four years of algorithms, systems and software design.</li><li>Graduated in 2018 with a GPA of 7.9/10.</li></ul></article>
+      <article class="panel"><div class="yr">2018</div><div class="where">Amdocs · Pune</div><h3>Software Engineer</h3><ul><li>Built Spring Boot microservices for product, order and customer workflows.</li><li>Moved services to event-driven flows on Kafka for scale and fault tolerance.</li><li>Automated manual operations with Camunda workflows.</li></ul></article>
+      <article class="panel"><div class="yr">2020</div><div class="where">Expedia Group · Gurgaon</div><h3>Joined typeahead</h3><ul><li>Joined in October 2020, mid-pandemic, on typeahead: the search box every traveller touches first.</li><li>Built a new Google Places fallback for the resolve API, which handled millions of calls from day one.</li></ul></article>
+      <article class="panel"><div class="yr">2021</div><div class="where">Typeahead</div><h3>Built a service from scratch</h3><ul><li>Designed and launched the recent search history service in two regions. Calls became almost 4× faster, and Vrbo latency halved to 50 ms.</li><li>Shipped friendly airport names end to end, across four services.</li><li>Added per-brand recommendations and a popularity model for Cars.</li></ul></article>
+      <article class="panel"><div class="yr">2022</div><div class="where">Typeahead · Filters</div><h3>Faster history, new APIs, filters</h3><ul><li>Moved recent history to the new user-activity platform: P95 from 100 ms to 35 ms.</li><li>Took the resolve API to production with caching and airport-code matching.</li><li>Simplified flight and package suggestions, which cut the bounce rate. The new version became the default.</li><li>Started on dynamic filters: popular, deals and show-available filters, plus an A/B framework.</li></ul></article>
+      <article class="panel"><div class="yr">2023</div><div class="where">Typeahead · Filters · Platform</div><h3>Reliability and ownership</h3><ul><li>Owned the follow-up to a major typeahead outage: alerts on every host and every downstream call.</li><li>Shipped delete-recent-searches for Expedia, Hotels.com and Vrbo; it won its A/B test on Hotels.com.</li><li>Exact match won on the lodging funnel and rolled out. Moved the data store from Elasticsearch to ScyllaDB.</li><li>Shipped the loyalty filter and price slider, and ran KT sessions for new joiners.</li></ul></article>
+      <article class="panel"><div class="yr">2024</div><div class="where">Typeahead · AI search</div><h3>Cleanup, then AI</h3><ul><li>Finished moving the whole search intent stack to Kubernetes in February.</li><li>Found that 97% of legacy traffic came from two apps, then moved every partner off the legacy endpoints.</li><li>Worked on Traveler Q&amp;A and won a local round of the EG Global Hackathon with a natural language search engine.</li><li>From August, built the intent engine behind AI search.</li></ul></article>
+      <article class="panel"><div class="yr">2025</div><div class="where">AI search · Query understanding</div><h3>Agents, RAG and late nights</h3><ul><li>Launched the Hotels.com AI agent's search in May; its fallback rate fell from 22% to 8%.</li><li>Moved semantic search into the intent service (96% parity) and retired the old service.</li><li>Operations lead: 99.95% availability, no major incidents, service moved up to Tier 1.</li><li>Won my first peer recognition award, and demoed BOSS Typeahead at a hackathon.</li></ul></article>
+      <article class="panel"><div class="yr">2026</div><div class="where">Vrbo · Ranking · Typeahead</div><h3>Launch, measure, lead</h3><ul><li>Ran DistilBERT inside our intent service on ONNX (p95 under 50 ms) and launched Natural Language Search on Vrbo.</li><li>Built automated ranking test readouts on my own: 14 live tests read out daily.</li><li>Retired unused ML services, saving about $300K a year. Won two more peer recognition awards.</li><li>Back on typeahead as tech lead for its next ranking model.</li></ul></article>
+      <article class="panel now"><div class="yr">Next</div><div class="where">2027</div><h3>Prove it on real traffic</h3><ul><li>Run the new ranking model in a live A/B test.</li><li>Grow as a tech lead and help more engineers own work end to end.</li></ul></article>
+    </div></div>
+    <div class="wrap"><div class="j-progress" aria-hidden="true"><i id="jBar"></i></div><p class="j-hint mono" id="jHint">Swipe or scroll sideways →</p></div>
+  </div>
+</section>
+
+<section class="block" id="craft" aria-labelledby="craft-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><b>03</b> Life as a software engineer</div>
+      <h2 id="craft-h" class="scrub-w">How I work</h2>
+      <p>Six years of shipping search have given me a few habits I keep, whatever the project.</p>
+    </div>
+    <div class="craft">
+      <div class="principles">
+        <div class="principle"><span class="mono">BASELINE</span><div><h3>Measure before I build</h3><p>I write down today's numbers first, so every launch is judged on evidence, including the ones that don't work.</p></div></div>
+        <div class="principle"><span class="mono">LATENCY</span><div><h3>Fast is a feature</h3><p>In a search box every millisecond is a keystroke. I design for the slowest request, not the average one.</p></div></div>
+        <div class="principle"><span class="mono">OWNERSHIP</span><div><h3>Own it end to end</h3><p>Design, build, launch, run, hand over. I stay with a system until someone else can run it without me.</p></div></div>
+        <div class="principle"><span class="mono">LESS</span><div><h3>Delete what nobody uses</h3><p>The cheapest service is the one you switch off. Cleanup is engineering work too.</p></div></div>
+        <div class="principle"><span class="mono">AI</span><div><h3>Use AI as a teammate</h3><p>I use AI coding agents every day and turn repeated work into tools that whole teams can share.</p></div></div>
+      </div>
+      <div class="skills">
+        <div class="skill-group"><span class="mono">Search and AI</span><div><span>Semantic search</span><span>Query understanding</span><span>Relevance and ranking</span><span>Agentic RAG</span><span>Vector and hybrid retrieval</span><span>LLM-as-judge</span><span>Embeddings</span></div></div>
+        <div class="skill-group"><span class="mono">Systems</span><div><span>High-QPS services</span><span>Low-latency design</span><span>Microservices</span><span>Event-driven architecture</span><span>Caching</span><span>Experimentation</span></div></div>
+        <div class="skill-group"><span class="mono">Languages and ML</span><div><span>Kotlin</span><span>Java</span><span>Python</span><span>Spring Boot</span><span>ONNX Runtime</span><span>DistilBERT</span></div></div>
+        <div class="skill-group"><span class="mono">Data and infrastructure</span><div><span>Elasticsearch</span><span>ScyllaDB</span><span>Kafka</span><span>Feast</span><span>Kubernetes</span><span>AWS</span><span>Flyte · Airflow</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="projects" aria-labelledby="projects-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><b>04</b> Side projects · built in my own time</div>
+      <h2 id="projects-h" class="scrub-w">Things I build to teach</h2>
+      <p>Outside work I build interactive tools that make hard engineering ideas visible: algorithms, architecture trade-offs and Kubernetes.</p>
+    </div>
+    <div class="projects">
+      <article class="proj">
+        <div class="prev prev-bars" aria-hidden="true"><div class="bars" id="pvBars"></div><span class="pv-label mono" id="pvBarsLbl">bubble sort · step 0</span></div>
+        <div class="proj-body">
+          <div class="card-top"><h3>AlgoLens</h3><span class="org">Live</span></div>
+          <p>Learn data structures and algorithms by watching them run. Step-by-step animations for 22+ algorithms, a complexity explorer that counts real comparisons and swaps, and code that stays in sync line by line. Everything runs in the browser.</p>
+          <div class="tags"><span>React 19</span><span>TypeScript</span><span>Tailwind v4</span></div>
+          <div class="proj-links"><a href="https://dsa-visualizer-two-pi.vercel.app/" target="_blank" rel="noopener">Live demo ↗</a><a href="https://github.com/Aashish-Anand/DSA-Visualizer" target="_blank" rel="noopener">Code ↗</a></div>
+        </div>
+      </article>
+      <article class="proj">
+        <div class="prev prev-cdc" aria-hidden="true">
+          <div class="cdc"><span class="node">Source<small>serving</small></span><span class="pipe"><i></i></span><span class="node">Target<small>catching up</small></span></div>
+          <div class="cdc-meta mono"><span>replication lag <b id="pvLag">14 ms</b></span><span><b id="pvWps">250</b> writes/s</span></div>
+        </div>
+        <div class="proj-body">
+          <div class="card-top"><h3>Engineering Judgment</h3><span class="org">Live</span></div>
+          <p>A field guide to architecture under pressure. Nine blueprints, from hot partitions to zero-downtime database migrations, each following constraint → bottleneck → decision → trade-off → failure. Interactive workbenches and 45 quiz scenarios.</p>
+          <div class="tags"><span>TypeScript</span><span>System design</span><span>Interactive labs</span></div>
+          <div class="proj-links"><a href="https://engineering-judgment-pi.vercel.app/" target="_blank" rel="noopener">Live demo ↗</a><a href="https://github.com/Aashish-Anand/engineering-judgment" target="_blank" rel="noopener">Code ↗</a></div>
+        </div>
+      </article>
+      <article class="proj">
+        <div class="prev prev-k8s" aria-hidden="true"><div class="k8s" id="pvK8s"><div class="kn"><small>node-1</small><div><i></i><i></i><i></i></div></div><div class="kn"><small>node-2</small><div><i></i><i></i><i></i></div></div><div class="kn"><small>node-3</small><div><i></i><i></i><i></i></div></div></div><span class="pv-label mono" id="pvK8sLbl">all nodes ready</span></div>
+        <div class="proj-body">
+          <div class="card-top"><h3>K8s Architecture Explorer</h3><span class="org">3D</span></div>
+          <p>Kubernetes, explained in a 3D cluster you can rotate and zoom. Ten animated scenarios (rolling updates, node failure, autoscaling, service discovery) with request packets flowing along spline paths and a timeline scrubber.</p>
+          <div class="tags"><span>Three.js</span><span>React Three Fiber</span><span>GSAP</span></div>
+          <div class="proj-links"><a href="https://github.com/Aashish-Anand/K8s-Visualizer" target="_blank" rel="noopener">Code ↗</a></div>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="people" aria-labelledby="people-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><b>05</b> The people around me</div>
+      <h2 id="people-h" class="scrub-w">Work is a team sport</h2>
+      <p>The work I'm proudest of made other people faster. That means leading, unblocking, documenting and building tools others can pick up on day one.</p>
+    </div>
+    <div class="people">
+      <div class="person-card"><span class="mono">LEAD</span><h3>Tech lead across teams</h3><p>I lead the next typeahead ranking model across ML scientists, platform engineers and my own team, from design and schema to rollout.</p></div>
+      <div class="person-card"><span class="mono">HANDOVER</span><h3>Docs that stand on their own</h3><p>Every system I hand over comes with a design doc, a user guide, a runbook and walkthrough videos, so teammates can run it without me.</p></div>
+      <div class="person-card"><span class="mono">TOOLS</span><h3>Tools for every team</h3><p>I turn one-off investigations into shared AI agent skills, such as one that checks whether a service is safe to retire. I demoed it across the org so other teams could reuse it.</p></div>
+      <div class="person-card"><span class="mono">ON CALL</span><h3>Show up when it breaks</h3><p>I owned the follow-up to a major typeahead outage, adding alerts on every host and downstream call. I've also been on call for search APIs and resolved 70+ partner support tickets.</p></div>
+      <div class="person-card"><span class="mono">TEACH</span><h3>Coaching and knowledge transfer</h3><p>I coach newer teammates and run KT sessions for new joiners. I wrote the self-service guide that moved partner teams off legacy endpoints, and I spread ownership so no system depends on one person.</p></div>
+      <div class="person-card"><span class="mono">HIRING</span><h3>Growing the team</h3><p>Interview panels, candidate feedback, hackathons, and shout-outs for the colleagues who carried a launch with me.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="education" aria-labelledby="edu-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow"><b>06</b> Foundations</div>
+      <h2 id="edu-h" class="scrub-w">Education and credentials</h2>
+    </div>
+    <div class="edu">
+      <div class="edu-card"><span class="mono">2014 – 2018</span><h3>Delhi Technological University</h3><p>Bachelor of Technology in Software Engineering · GPA 7.9/10</p></div>
+      <div class="edu-card"><span class="mono">Certification</span><h3>AWS Certified Developer – Associate</h3><p>Building and running services on AWS</p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="contact" id="contact">
+  <div class="wrap">
+    <div class="eyebrow"><b>07</b> Contact</div>
+    <p class="big scrub-w">Let's build search that <em>gets it.</em></p>
+    <div class="email-row"><span class="email" id="email">aashishanand1997@gmail.com</span><button class="btn" id="copyBtn" type="button">Copy email</button><a class="btn ghost" href="https://www.linkedin.com/in/aashish-anand-62a072109/" target="_blank" rel="noopener">LinkedIn ↗</a><a class="btn ghost" href="https://github.com/Aashish-Anand" target="_blank" rel="noopener">GitHub ↗</a></div>
+    <p class="mono" style="color:var(--muted)">Gurgaon, India</p>
+    <div class="foot mono"><span>© 2026 Aashish Anand</span><span>Built with GSAP, Lenis and WebGL</span></div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/Flip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+<script>
+(() => {
+  const root = document.documentElement;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasGsap = typeof gsap !== 'undefined';
+
+  /* Theme toggle */
+  const store = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
+  const saved = store.get('aa-theme'); if (saved) root.setAttribute('data-theme', saved);
+  const isDark = () => root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const next = isDark() ? 'light' : 'dark'; root.setAttribute('data-theme', next); store.set('aa-theme', next);
+    window.dispatchEvent(new Event('themechange'));
+  });
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => window.dispatchEvent(new Event('themechange')));
+
+  /* Copy email */
+  const copyBtn = document.getElementById('copyBtn'), emailEl = document.getElementById('email');
+  copyBtn.addEventListener('click', () => {
+    const done = () => { copyBtn.textContent = 'Copied'; setTimeout(() => copyBtn.textContent = 'Copy email', 1800); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(emailEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); copyBtn.textContent = 'Selected, press copy'; };
+    try { navigator.clipboard.writeText(emailEl.textContent.trim()).then(done, fallback); } catch(e){ fallback(); }
+  });
+
+  /* Side-project previews: tiny live versions of each project */
+  (function previews(){
+    const barsEl = document.getElementById('pvBars'), lbl = document.getElementById('pvBarsLbl');
+    const N = 14; let a = [], i = 0, j = 0, step = 0, pause = 0;
+    const shuffle = () => { a = Array.from({length:N}, (_, k) => 18 + Math.round((k + 1) / N * 82)); for (let k = N - 1; k > 0; k--) { const r = Math.floor(Math.random() * (k + 1)); [a[k], a[r]] = [a[r], a[k]]; } i = 0; j = 0; step = 0; };
+    shuffle();
+    barsEl.innerHTML = a.map(h => `<span style="height:${h}%"></span>`).join('');
+    const spans = [...barsEl.children];
+    const draw = (cmp, sortedFrom) => spans.forEach((s, k) => { s.style.height = a[k] + '%'; s.classList.toggle('cmp', cmp.includes(k)); s.classList.toggle('done', k >= sortedFrom); });
+    draw([], N);
+    const lagEl = document.getElementById('pvLag'), wpsEl = document.getElementById('pvWps');
+    const k8s = [...document.querySelectorAll('#pvK8s .kn')], k8sLbl = document.getElementById('pvK8sLbl');
+    if (reduce) { draw([], N); return; }
+    let visible = false;
+    new IntersectionObserver(es => { visible = es.some(e => e.isIntersecting); }, { rootMargin:'100px' }).observe(document.getElementById('projects'));
+    setInterval(() => { // bubble sort, one comparison per tick
+      if (!visible) return;
+      if (i >= N - 1) { if (pause === 0) { draw([], 0); lbl.textContent = `sorted in ${step} steps`; } if (++pause > 12) { pause = 0; shuffle(); draw([], N); lbl.textContent = 'bubble sort · step 0'; } return; }
+      if (a[j] > a[j + 1]) [a[j], a[j + 1]] = [a[j + 1], a[j]];
+      draw([j, j + 1], N - i); step++; lbl.textContent = `bubble sort · step ${step}`;
+      j++; if (j >= N - 1 - i) { j = 0; i++; }
+    }, 180);
+    let wps = 250, lag = 14;
+    setInterval(() => { if (!visible) return; wps = Math.max(120, Math.min(900, wps + Math.round((Math.random() - .45) * 90)));
+      lag = Math.max(6, Math.round(lag * .6 + (wps / 18) * .4 + (Math.random() - .5) * 6)); wpsEl.textContent = wps; lagEl.textContent = lag + ' ms'; }, 900);
+    let kt = 0;
+    setInterval(() => { if (!visible) return; kt = (kt + 1) % 4;
+      const pods = kt === 1 ? [4, 0, 5] : kt === 2 ? [3, 3, 3] : [3, 3, 3];
+      k8s.forEach((n, x) => { n.classList.toggle('down', kt === 1 && x === 1); n.querySelector('div').innerHTML = '<i></i>'.repeat(pods[x]); });
+      k8sLbl.textContent = kt === 1 ? 'node-2 failed · pods rescheduled' : kt === 2 ? 'node-2 recovered · rebalanced' : 'all nodes ready'; }, 2600);
+  })();
+
+  /* Split the name into letters (variable-width axis per letter) */
+  const letters = [];
+  document.querySelectorAll('.name .line').forEach(line => {
+    const t = line.textContent; line.textContent = '';
+    [...t].forEach(ch => { const s = document.createElement('span'); s.className = 'l'; s.textContent = ch; line.appendChild(s); letters.push(s); });
+  });
+
+  /* WebGL embedding cloud */
+  (function cloud(){
+    const canvas = document.getElementById('cloud');
+    const gl = canvas.getContext('webgl', { premultipliedAlpha:true, antialias:true, alpha:true });
+    if (!gl) return;
+    const vs = `attribute vec3 aPos;attribute vec3 aCol;attribute float aSeed;
+      uniform float uT;uniform vec2 uM;uniform float uAsp;uniform float uDpr;uniform float uOff;uniform float uScr;uniform float uSz;
+      varying vec3 vC;varying float vA;
+      void main(){
+        vec3 p=aPos+0.035*vec3(sin(uT*.6+aSeed*6.283),cos(uT*.5+aSeed*12.1),sin(uT*.4+aSeed*3.7));
+        float a=uT*.045+uM.x*.4; float b=.28+uM.y*.22;
+        p=vec3(p.x*cos(a)+p.z*sin(a),p.y,-p.x*sin(a)+p.z*cos(a));
+        p=vec3(p.x,p.y*cos(b)-p.z*sin(b),p.y*sin(b)+p.z*cos(b));
+        float z=p.z+3.4+uScr*1.2;
+        vec2 q=p.xy/z*2.3; q.x=q.x/uAsp+uOff; q.y+=.05;
+        gl_Position=vec4(q,0.,1.);
+        gl_PointSize=(1.6+fract(aSeed*91.7)*3.4)*uDpr*(3.4/z)*uSz;
+        vC=aCol; vA=clamp(1.55-z*.28,.12,.95);
+      }`;
+    const fs = `precision mediump float;varying vec3 vC;varying float vA;uniform float uK;
+      void main(){vec2 c=gl_PointCoord-.5;float d=length(c);float a=smoothstep(.5,.05,d)*vA*uK;gl_FragColor=vec4(vC*a,a);}`;
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
+    const prog = gl.createProgram(); gl.attachShader(prog, sh(gl.VERTEX_SHADER, vs)); gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+    gl.useProgram(prog);
+
+    const small = innerWidth < 760, N = small ? 1400 : 3200, K = 7;
+    const pos = new Float32Array(N*3), seed = new Float32Array(N), group = new Uint8Array(N);
+    const centers = Array.from({length:K}, (_, i) => { const t = i / K * Math.PI * 2, y = (i % 2 ? .45 : -.35) * Math.random(); return [Math.cos(t) * 1.05, y, Math.sin(t) * 1.05]; });
+    const gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+    for (let i = 0; i < N; i++) {
+      seed[i] = Math.random();
+      if (Math.random() < .16) { const r = 1.9 * Math.cbrt(Math.random()), th = Math.random()*Math.PI*2, ph = Math.acos(2*Math.random()-1);
+        pos.set([r*Math.sin(ph)*Math.cos(th), r*Math.cos(ph)*.7, r*Math.sin(ph)*Math.sin(th)], i*3); group[i] = 255; }
+      else { const g = i % K, c = centers[g], s = .2 + (g % 3) * .05; pos.set([c[0]+gauss()*s, c[1]+gauss()*s, c[2]+gauss()*s], i*3); group[i] = g; }
+    }
+    const col = new Float32Array(N*3);
+    const hex = h => { h = h.trim().replace('#',''); if (h.length === 3) h = [...h].map(x => x+x).join(''); const n = parseInt(h, 16); return [(n>>16&255)/255, (n>>8&255)/255, (n&255)/255]; };
+    const buf = (data, name, size) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW); const loc = gl.getAttribLocation(prog, name); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, size, gl.FLOAT, false, 0, 0); return b; };
+    buf(pos, 'aPos', 3); buf(seed, 'aSeed', 1); const colBuf = buf(col, 'aCol', 3);
+    const U = n => gl.getUniformLocation(prog, n);
+    const uT = U('uT'), uM = U('uM'), uAsp = U('uAsp'), uDpr = U('uDpr'), uOff = U('uOff'), uScr = U('uScr'), uK = U('uK'), uSz = U('uSz');
+    function paint(){
+      const cs = getComputedStyle(root), pal = ['--accent','--dest','--date','--guest','--type','--accent','--dest'].map(v => hex(cs.getPropertyValue(v))), mut = hex(cs.getPropertyValue('--muted'));
+      for (let i = 0; i < N; i++) col.set(group[i] === 255 ? mut : pal[group[i]], i*3);
+      gl.bindBuffer(gl.ARRAY_BUFFER, colBuf); gl.bufferData(gl.ARRAY_BUFFER, col, gl.STATIC_DRAW);
+      gl.uniform1f(uK, 1.0); gl.uniform1f(uSz, isDark() ? 1.0 : 1.5);
+    }
+    paint(); window.addEventListener('themechange', () => { paint(); if (reduce) frame(0); });
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    let dpr = Math.min(devicePixelRatio || 1, 2);
+    function resize(){ const r = canvas.getBoundingClientRect(); canvas.width = Math.max(1, r.width*dpr); canvas.height = Math.max(1, r.height*dpr); gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform1f(uAsp, r.width / Math.max(1, r.height)); gl.uniform1f(uDpr, dpr); gl.uniform1f(uOff, r.width > 980 ? .42 : 0); }
+    new ResizeObserver(resize).observe(canvas); resize();
+    const m = {x:0, y:0, tx:0, ty:0}; let scr = 0;
+    addEventListener('pointermove', e => { m.tx = (e.clientX / innerWidth - .5); m.ty = (e.clientY / innerHeight - .5); }, { passive:true });
+    addEventListener('scroll', () => { scr = Math.min(1, scrollY / Math.max(1, canvas.clientHeight)); }, { passive:true });
+    let visible = true, t0 = performance.now();
+    new IntersectionObserver(es => { visible = es[0].isIntersecting; if (visible && !reduce) requestAnimationFrame(loop); }).observe(canvas);
+    function frame(t){
+      m.x += (m.tx - m.x) * .05; m.y += (m.ty - m.y) * .05;
+      gl.uniform1f(uT, t); gl.uniform2f(uM, m.x, m.y); gl.uniform1f(uScr, scr);
+      gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.POINTS, 0, N);
+    }
+    function loop(now){ if (!visible) return; frame((now - t0) / 1000); requestAnimationFrame(loop); }
+    if (reduce) frame(8); else requestAnimationFrame(loop);
+  })();
+
+  /* Name: width follows the pointer */
+  if (!reduce) {
+    const w = letters.map(() => 100), target = letters.map(() => 100); let px = -1e4, running = false;
+    const hero = document.querySelector('.hero');
+    hero.addEventListener('pointermove', e => { px = e.clientX; kick(); }, { passive:true });
+    hero.addEventListener('pointerleave', () => { px = -1e4; kick(); });
+    function kick(){ if (!running) { running = true; requestAnimationFrame(tick); } }
+    function tick(){
+      let moving = false;
+      letters.forEach((l, i) => { const r = l.getBoundingClientRect(), d = (r.left + r.width/2 - px) / 180;
+        target[i] = 100 + 26 * Math.exp(-d*d); w[i] += (target[i] - w[i]) * .14; if (Math.abs(target[i] - w[i]) > .1) moving = true; l.style.setProperty('--w', w[i].toFixed(2)); });
+      if (moving) requestAnimationFrame(tick); else running = false;
+    }
+  }
+
+  if (!hasGsap) return;
+  gsap.registerPlugin(ScrollTrigger, Flip);
+
+  /* Smooth scroll */
+  let lenis = null;
+  if (!reduce && typeof Lenis !== 'undefined') {
+    lenis = new Lenis({ lerp:.1, smoothWheel:true });
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(t => lenis.raf(t * 1000)); gsap.ticker.lagSmoothing(0);
+  }
+  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+    const id = a.getAttribute('href'), el = id === '#top' ? document.body : document.querySelector(id); if (!el) return;
+    e.preventDefault(); lenis ? lenis.scrollTo(id === '#top' ? 0 : el, { offset:-64 }) : el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+  }));
+
+  /* Intro */
+  if (!reduce) {
+    const tl = gsap.timeline({ defaults:{ ease:'expo.out' } });
+    tl.from(letters, { yPercent:45, opacity:0, duration:1.2, stagger:.035 })
+      .fromTo(letters, { '--w':58 }, { '--w':100, duration:1.6, stagger:.03, ease:'power3.out' }, 0)
+      .from('.hero .eyebrow, .thesis, .sub', { y:24, duration:1, stagger:.08 }, .35)
+      .from('.stats .stat', { y:20, duration:.9, stagger:.06 }, .55)
+      .from('.qd', { y:40, rotateX:8, duration:1.3, transformPerspective:900 }, .45);
+    document.querySelectorAll('.count').forEach(el => {
+      const to = +el.dataset.to, pre = el.dataset.prefix || '', suf = el.dataset.suffix || '', o = { v:0 };
+      gsap.to(o, { v:to, duration:1.8, delay:.6, ease:'power2.out', onUpdate:() => el.textContent = pre + Math.round(o.v) + suf });
+    });
+  }
+
+  /* Typeahead demo: type, tag entities, re-rank */
+  const Q = [
+    { text:'cabin near lake tahoe for 4 adults and a dog, last weekend of august',
+      marks:[['cabin','type'],['lake tahoe','dest'],['4 adults and a dog','guest'],['last weekend of august','date']],
+      chips:{ dest:'Lake Tahoe, CA', date:'Aug 27 → 29, 2027', guest:'4 adults · 1 pet', type:'Cabin' },
+      items:{ a:['Lake Tahoe, California','REGION'], b:['South Lake Tahoe, CA','CITY'], c:['Tahoe City, CA','CITY'], d:['TVL · Lake Tahoe Airport','AIRPORT'] },
+      early:{ order:['d','b','a','c'], s:[.71,.64,.58,.4] }, late:{ order:['a','b','c','d'], s:[.94,.81,.66,.38] }, ms:14 },
+    { text:'beach house in goa for a family of five over christmas week',
+      marks:[['beach house','type'],['goa','dest'],['family of five','guest'],['christmas week','date']],
+      chips:{ dest:'Goa, India', date:'Dec 24 → 29, 2026', guest:'5 guests', type:'Beach house' },
+      items:{ a:['Goa, India','STATE'], b:['North Goa','REGION'], c:['Candolim, Goa','CITY'], d:['GOI · Dabolim Airport','AIRPORT'] },
+      early:{ order:['d','a','c','b'], s:[.74,.69,.52,.47] }, late:{ order:['a','b','c','d'], s:[.96,.84,.71,.33] }, ms:11 },
+    { text:'flat in london for two adults and a cat, first week of march',
+      marks:[['flat','type'],['london','dest'],['two adults and a cat','guest'],['first week of march','date']],
+      chips:{ dest:'London, England', date:'Mar 1 → 7, 2027', guest:'2 adults · 1 pet', type:'Apartment' },
+      items:{ a:['London, England','CITY'], b:['Central London','NEIGHBORHOOD'], c:['London Bridge','POI'], d:['LHR · Heathrow Airport','AIRPORT'] },
+      early:{ order:['d','a','c','b'], s:[.78,.72,.51,.46] }, late:{ order:['a','b','c','d'], s:[.97,.82,.6,.41] }, ms:16 }
+  ];
+  const tEl = document.getElementById('qdText'), chipsEl = document.getElementById('qdChips'), list = document.getElementById('qdRanked'), status = document.getElementById('qdStatus');
+  const esc = s => s.replace(/[&<>]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c]));
+  function render(q, n){
+    const t = q.text.slice(0, n), rs = q.marks.map(([s, k]) => { const i = q.text.indexOf(s); return { s:i, e:i + s.length, k }; }).sort((a, b) => a.s - b.s);
+    let html = '', i = 0;
+    for (const r of rs) { if (r.s >= n) break; html += esc(t.slice(i, r.s)); const seg = t.slice(r.s, Math.min(r.e, n)); html += n >= r.e ? `<mark class="m-${r.k}">${esc(seg)}</mark>` : esc(seg); i = Math.min(r.e, n); }
+    tEl.innerHTML = html + esc(t.slice(i)) + '<span class="caret"></span>';
+    rs.forEach(r => { const c = chipsEl.querySelector(`[data-k="${r.k}"]`); c.classList.toggle('off', n < r.e); });
+  }
+  function setItems(q){
+    list.innerHTML = Object.entries(q.items).map(([id, [nm, tp]]) => `<li data-id="${id}"><span class="nm">${nm}</span><span class="tp">${tp}</span><span class="bar"><i></i></span></li>`).join('');
+    Object.entries(q.chips).forEach(([k, v]) => chipsEl.querySelector(`[data-k="${k}"] span`).textContent = v);
+  }
+  function rank(st, animate){
+    const lis = [...list.children], byId = Object.fromEntries(lis.map(li => [li.dataset.id, li]));
+    const state = animate ? Flip.getState(lis) : null;
+    st.order.forEach((id, i) => { list.appendChild(byId[id]); byId[id].querySelector('.bar i').style.setProperty('--s', st.s[i]); });
+    if (state) Flip.from(state, { duration:.8, ease:'power3.inOut' });
+  }
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let heroVisible = true;
+  new IntersectionObserver(es => heroVisible = es[0].isIntersecting).observe(document.querySelector('.qd'));
+  async function demo(){
+    await sleep(4200);
+    let qi = 1;
+    for (;;) {
+      const q = Q[qi % Q.length]; qi++;
+      while (!heroVisible || document.hidden) await sleep(400);
+      await gsap.to(list, { opacity:0, duration:.25 });
+      setItems(q); render(q, 0); rank(q.early, false); status.textContent = 'reading intent…';
+      gsap.to(list, { opacity:1, duration:.3 });
+      const destEnd = q.text.indexOf(q.marks.find(m => m[1] === 'dest')[0]) + q.marks.find(m => m[1] === 'dest')[0].length;
+      let ranked = false;
+      for (let n = 1; n <= q.text.length; n++) {
+        render(q, n);
+        if (!ranked && n >= destEnd + 6) { rank(q.late, true); ranked = true; }
+        await sleep(q.text[n-1] === ' ' ? 70 : 34 + Math.random()*38);
+      }
+      status.textContent = `intent read in ${q.ms} ms · no LLM call`;
+      await sleep(3600);
+    }
+  }
+  if (!reduce) demo();
+
+  /* Headings widen as they arrive (text stays readable throughout) */
+  document.querySelectorAll('.scrub-w').forEach(el => gsap.fromTo(el, { '--w':64 }, { '--w':100, ease:'none', scrollTrigger:{ trigger:el, start:'top 96%', end:'top 50%', scrub:true } }));
+
+  if (!reduce) {
+    /* Cards drift up and tilt toward the pointer */
+    document.querySelectorAll('.card').forEach(card => {
+      gsap.from(card, { y:60, ease:'none', scrollTrigger:{ trigger:card, start:'top 100%', end:'top 70%', scrub:true } });
+      const rx = gsap.quickTo(card, 'rotationX', { duration:.5, ease:'power3' }), ry = gsap.quickTo(card, 'rotationY', { duration:.5, ease:'power3' });
+      gsap.set(card, { transformPerspective:1000 });
+      card.addEventListener('pointermove', e => { const r = card.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        card.style.setProperty('--mx', x*100 + '%'); card.style.setProperty('--my', y*100 + '%'); rx((.5 - y) * 5); ry((x - .5) * 6); });
+      card.addEventListener('pointerleave', () => { rx(0); ry(0); });
+    });
+    gsap.utils.toArray('.principle, .person-card, .edu-card, .proj').forEach(el => gsap.from(el, { y:36, ease:'none', scrollTrigger:{ trigger:el, start:'top 100%', end:'top 75%', scrub:true } }));
+  }
+
+  /* Journey: horizontal scroll on wide screens */
+  const mm = gsap.matchMedia(), jSec = document.getElementById('journey'), track = document.getElementById('jTrack'), vp = document.getElementById('jViewport'), bar = document.getElementById('jBar'), hint = document.getElementById('jHint');
+  mm.add('(min-width: 900px) and (prefers-reduced-motion: no-preference)', () => {
+    jSec.classList.add('is-pinned'); hint.textContent = 'Keep scrolling →';
+    const dist = () => { const cs = getComputedStyle(vp); return Math.max(0, track.scrollWidth - (vp.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight))); };
+    const tw = gsap.to(track, { x:() => -dist(), ease:'none', scrollTrigger:{ trigger:jSec, start:'top top', end:() => '+=' + dist(), pin:true, scrub:1, invalidateOnRefresh:true,
+      onUpdate:s => gsap.set(bar, { scaleX:.12 + s.progress * .88 }) } });
+    track.querySelectorAll('.yr').forEach(y => gsap.fromTo(y, { xPercent:14 }, { xPercent:-14, ease:'none', scrollTrigger:{ trigger:y.parentElement, containerAnimation:tw, start:'left right', end:'right left', scrub:true } }));
+    return () => { jSec.classList.remove('is-pinned'); hint.textContent = 'Swipe or scroll sideways →'; };
+  });
+  mm.add('(max-width: 899px)', () => {
+    const upd = () => gsap.set(bar, { scaleX:.12 + (vp.scrollLeft / Math.max(1, vp.scrollWidth - vp.clientWidth)) * .88 });
+    vp.addEventListener('scroll', upd, { passive:true }); return () => vp.removeEventListener('scroll', upd);
+  });
+  addEventListener('load', () => ScrollTrigger.refresh());
+  document.fonts && document.fonts.ready.then(() => ScrollTrigger.refresh());
+})();
+</script>
+
+</body>
+</html>
